@@ -5,7 +5,13 @@
         <td> <span>{{ message.title }}</span> </td>
       </tr>
     </transition-group>
-    <button class="btn btnPrimary" @click="loadMore">Load More</button>
+    <button 
+      class="btn btnPrimary"  
+      @click="loadMore"
+      :disabled="maxLength === 0"
+      :class="{btnDisabled: maxLength === 0}">
+        Load More
+    </button>
   </table>
 </template>
 
@@ -15,6 +21,11 @@ export default {
     messages: {
       type: Array,
       required: true
+    }
+  },
+  computed: {
+    maxLength () {
+      return this.$store.getters.getMessagesFilter.length
     }
   },
   methods: {
