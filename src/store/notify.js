@@ -1,4 +1,6 @@
 import loadMore from '../assets/js/loadMore.js'
+import loading from './loading.js'
+import axios from 'axios'
 
 export default {
   state: {
@@ -14,7 +16,7 @@ export default {
     },
     loadMessages(state, payload) {
       state.messagesMain = [...state.messagesMain, ...payload]
-    }
+    },
   },
   actions: {
     setMessages ({commit}, payload) {
@@ -26,6 +28,41 @@ export default {
     loadMessages ({commit, getters} ){
       let res = getters.getMessagesFilter
       commit('loadMessages', loadMore(res)) 
+    }, 
+ 
+    getNotifyLazy ({ dispatch, commit }) {
+      return dispatch('setLoading', true)
+        .then(() => {
+          setTimeout(() => {
+            dispatch('getNotify')
+          }, 1000)
+      })  
+    },
+    getNotify({state, dispatch}) {
+      return dispatch('setLoading', true)
+        .then(() => {
+          axios
+            .get('http://sasha-izvekov.ru/api/notifyApi.php')
+              .then(response => {
+                let res = response.data.notify,
+                    messages = [],
+                    messagesMain = [];
+
+                // Filter
+                for (let i = 0; i < res.length; i++) {
+                  if (res[i].main) messagesMain.push(res[i])
+                  else messages.push(res[i])
+                }
+
+                dispatch('setMessages', messages)
+                dispatch('setMessagesMain', messagesMain)
+              })
+              .catch(error => {
+                console.log(error)
+                dispatch('setError', {message: 'Network error', isError: true})
+              })
+              .finally( () => {dispatch('setLoading', false)})
+          })
     }
   },
   getters: {
